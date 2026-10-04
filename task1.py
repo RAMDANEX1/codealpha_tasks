@@ -4,7 +4,7 @@
 import struct
 import socket
 
-      #### COUCHE LIAISON  #####
+### COUCHE LIAISON  ###
 def unpack_ethernet_trame(data):
     # entete dune trame ethernet est de 14 octets
     eth_header = data[:14]
@@ -19,7 +19,7 @@ def unpack_ethernet_trame(data):
 def format_mac_adress(bytes_adr):
     return ":".join(format(b,"02x") for b in bytes)
 
-      #### COUCHE RESEAU ###
+#### COUCHE RESEAU ###
 def unpack_ipv4(data):
     #entete ip minimal =20 octets
     version_ihl = data[0]
@@ -30,5 +30,18 @@ def unpack_ipv4(data):
                            struct.unpack('>BBH4s4s', data[8:20])[1], \
                            socket.inet_ntoa(data[12:16]), \
                            socket.inet_ntoa(data[16:20])
-    
     return version, ihl, ttl, proto, src, dst, data[ihl:]
+
+### COUCHE TRANSPORT ###
+def unpack_tcp(donnees):
+    # Utilisation de 'I' (4 octets) à la place de 'L' pour seq et ack
+    port_src, port_dst, seq, ack, offset_reserved_flags = struct.unpack('>HHIIH', donnees[:14])
+    
+    offset = (offset_reserved_flags >> 12) * 4  # Longueur en-tête TCP
+    flags = offset_reserved_flags & 0x3F        # Les 6 drapeaux (FIN, SYN, RST, PSH, ACK, URG)
+    
+    flag_syn = (flags & 0x02) >> 1
+    flag_ack = (flags & 0x10) >> 4
+    flag_fin = flags & 0x01
+    
+    return port_src, port_dst, seq, ack, flag_syn, flag_ack, flag_fin, donnees[offset:]
