@@ -32,7 +32,7 @@ def unpack_ipv4(data):
                            socket.inet_ntoa(data[16:20])
     return version, ihl, ttl, proto, src, dst, data[ihl:]
 
-### COUCHE TRANSPORT ###
+### COUCHE TRANSPORT proto TCP (20 octets min )###
 def unpack_tcp(donnees):
     # Utilisation de 'I' (4 octets) à la place de 'L' pour seq et ack
     port_src, port_dst, seq, ack, offset_reserved_flags = struct.unpack('>HHIIH', donnees[:14])
@@ -45,3 +45,7 @@ def unpack_tcp(donnees):
     flag_fin = flags & 0x01
     
     return port_src, port_dst, seq, ack, flag_syn, flag_ack, flag_fin, donnees[offset:]
+###  COUCHE TRANSPORT proto UDP 8 octets header)
+def decoder_udp(donnees):
+    port_src, port_dst, longueur = struct.unpack('>HHH', donnees[:6])
+    return port_src, port_dst, longueur, donnees[8:]
